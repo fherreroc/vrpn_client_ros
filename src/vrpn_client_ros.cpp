@@ -175,7 +175,49 @@ namespace vrpn_client_ros
       {
         tracker->pose_msg_.header.stamp = ros::Time::now();
       }
+      
+      //IRI PATCH: ROTATION -90degrees in z
+      tf2::Quaternion q_o_r(tracker_pose.quat[0], tracker_pose.quat[1], tracker_pose.quat[2], tracker_pose.quat[3]);
+      tf2::Vector3    p_o_r(tracker_pose.pos[0],  tracker_pose.pos[1],  tracker_pose.pos[2]);
+      tf2::Transform  T_o_r(q_o_r,p_o_r);
 
+      tf2::Quaternion q_r_rnew(-0.707,0.0,0.0,0.707);
+      tf2::Vector3    p_r_rnew(0.0,0.0,0.0);
+      tf2::Transform  T_r_rnew(q_r_rnew,p_r_rnew);
+
+      tf2::Quaternion q_w_o(0.707, 0.0, 0.0, 0.707);
+      tf2::Vector3    p_w_o(0.0,0.0,0.0);
+      tf2::Transform  T_w_o(q_w_o,p_w_o);
+
+      tf2::Transform T_w_rnew = T_w_o*T_o_r*T_r_rnew;
+
+      tracker->pose_msg_.pose.orientation.x = T_w_rnew.getRotation().x();
+      tracker->pose_msg_.pose.orientation.y = T_w_rnew.getRotation().y();
+      tracker->pose_msg_.pose.orientation.z = T_w_rnew.getRotation().z();
+      tracker->pose_msg_.pose.orientation.w = T_w_rnew.getRotation().w();
+
+      tracker->transform_stamped_.transform.translation.x = T_w_rnew.getOrigin().x();
+      tracker->transform_stamped_.transform.translation.y = T_w_rnew.getOrigin().y();
+      tracker->transform_stamped_.transform.translation.z = T_w_rnew.getOrigin().z();
+
+      tracker->transform_stamped_.transform.rotation.x = T_w_rnew.getRotation().x();
+      tracker->transform_stamped_.transform.rotation.y = T_w_rnew.getRotation().y();
+      tracker->transform_stamped_.transform.rotation.z = T_w_rnew.getRotation().z();
+      tracker->transform_stamped_.transform.rotation.w = T_w_rnew.getRotation().w();
+
+      tracker->pose_msg_.pose.position.x = T_w_rnew.getOrigin().x();
+      tracker->pose_msg_.pose.position.y = T_w_rnew.getOrigin().y();
+      tracker->pose_msg_.pose.position.z = T_w_rnew.getOrigin().z();
+
+      tracker->pose_msg_.pose.orientation.x = T_w_rnew.getRotation().x();
+      tracker->pose_msg_.pose.orientation.y = T_w_rnew.getRotation().y();
+      tracker->pose_msg_.pose.orientation.z = T_w_rnew.getRotation().z();
+      tracker->pose_msg_.pose.orientation.w = T_w_rnew.getRotation().w();
+      //IRI PATCH
+
+
+      //ORIGINAL CODE: no rotation
+      /*
       tracker->pose_msg_.pose.position.x = tracker_pose.pos[0];
       tracker->pose_msg_.pose.position.y = tracker_pose.pos[1];
       tracker->pose_msg_.pose.position.z = tracker_pose.pos[2];
@@ -184,6 +226,8 @@ namespace vrpn_client_ros
       tracker->pose_msg_.pose.orientation.y = tracker_pose.quat[1];
       tracker->pose_msg_.pose.orientation.z = tracker_pose.quat[2];
       tracker->pose_msg_.pose.orientation.w = tracker_pose.quat[3];
+      */
+      //ORIGINAL CODE
 
       pose_pub->publish(tracker->pose_msg_);
     }
